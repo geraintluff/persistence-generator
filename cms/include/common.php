@@ -1,0 +1,1 @@
+<?phpinclude_once dirname(__FILE__)."/config.php";include_once dirname(__FILE__)."/utils.php";include_once dirname(__FILE__)."/../gen/latest/common.php";DatabaseBackedClass::connectToDatabase(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);?>

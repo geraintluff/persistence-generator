@@ -1,0 +1,11 @@
+{
+	"title": "Error (HTTP)",
+	"type": "object",
+	"properties": {
+		"statusCode": {"type": "integer"},
+		"statusText": {"type": "string"},
+		"message": {"type": "string"},
+		"data": {"title": "Supplementary data"}
+	},
+	"required": ["statusCode", "statusText", "message"]
+}

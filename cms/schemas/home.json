@@ -1,0 +1,11 @@
+{
+	"title": "Home page",
+	"links": [
+		{
+			"rel": "signup",
+			"href": "users.php/",
+			"method": "POST",
+			"schema": {"$ref": "user.json"}
+		}
+	]
+}

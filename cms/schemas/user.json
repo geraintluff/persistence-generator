@@ -1,0 +1,11 @@
+{
+	"title": "User",
+	"type": "object",
+	"properties": {
+		"id": {"type": "integer", "readOnly": true},
+		"name": {"type": "string"},
+		"favouriteNumber": {"type": "number"},
+		"optimistic": {"type": "boolean"}
+	},
+	"required": ["name", "favouriteNumber"]
+}
