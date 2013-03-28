@@ -28,6 +28,10 @@ echo '<pre>'.htmlentities(file_get_contents("gen/ExampleClass.php")).'</pre>';
 <hr>
 <?php
 
+include "gen_latest/common.php";
+include "include/config.php";
+DatabaseBackedClass::connectToDatabase(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+
 include "ExampleClass.php";
 include "ExampleInnerClass.php";
 

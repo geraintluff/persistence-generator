@@ -60,8 +60,8 @@ class ApiGenerator {
 		return $result;
 	}
 
-	public function createCustomClass($className, $tableName, $tableKeyColumn) {
-		$result = new DatabaseBackedCustomClassGenerator($className, $this->tablePrefix.$tableName, $tableKeyColumn);
+	public function createCustomClass($className) {
+		$result = new DatabaseBackedCustomClassGenerator($className);
 		$result->includePrefix = $this->includePrefix;
 		$this->generators[] = $result;
 		return $result;
@@ -109,7 +109,7 @@ class ApiGenerator {
 			$latestCode = "<?php\n";
 			$latestCode .= "include_once dirname(__FILE__).\"/paths.php\";\n";
 			$latestCode .= "include {$includePathConstant}.".self::phpString($localName).";\n\n";
-			$latestCode .= "class {$generator->className}{$this->classSuffix} extends {$generator->className}{$this->classSuffix}{$this->versionSuffix} {}\n";
+			$latestCode .= "abstract class {$generator->className}{$this->classSuffix} extends {$generator->className}{$this->classSuffix}{$this->versionSuffix} {}\n";
 			$latestCode .= "?>";
 			file_put_contents($latestOutputFilename, $latestCode);
 
@@ -434,12 +434,12 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 	}
 	
 	public function __get($key) {
-		$this->executePending();
+		$this->executePending($key);
 		return $this->innerData[$key];
 	}
 	
 	public function __set($key, $value) {
-		$this->executePending();';
+		$this->executePending($key);';
 		foreach ($this->maps as $map) {
 			if ($map['type'] == "object") {
 				$code .= '
@@ -491,7 +491,7 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 	}
 
 	public function __unset($key) {
-		$this->executePending();';
+		$this->executePending($key);';
 		foreach ($this->maps as $map) {
 			if ($map['type'] == "object") {
 				$code .= '
@@ -524,8 +524,11 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 		return $this->id;
 	}
 
-	protected function executePending($key) {
+	protected function executePending($key=NULL) {
 		if ($this->hasPending) {
+			if ($key != NULL && !($this->innerData[$key] instanceof '.$pendingClass.')) {
+				return;
+			}
 			$this->hasPending = FALSE;
 			foreach ($this->innerData as $key => $value) {
 				if ($value instanceof '.$pendingClass.') {
@@ -932,8 +935,11 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 		return $this->id;
 	}
 
-	protected function executePending($key) {
+	protected function executePending($index=NULL) {
 		if ($this->hasPending) {
+			if ($index != NULL && !(parent::offsetGet($index) instanceof '.$pendingClass.')) {
+				return;
+			}
 			// disable the flag first, because the iteration calls back to this function
 			$this->hasPending = FALSE;
 			foreach ($this as $index => $value) {
@@ -1026,7 +1032,7 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 	}
 	
 	public function offsetSet($index, $value) {
-		$this->executePending();';
+		$this->executePending($index);';
 		foreach ($this->maps as $map) {
 			if ($map['type'] == "object") {
 				$code .= '
@@ -1080,12 +1086,12 @@ class '.$this->className.$classNameSuffix.' extends '.$commonClass.' implements 
 	}
 	
 	public function offsetGet($index) {
-		$this->executePending();
+		$this->executePending($index);
 		return parent::offsetGet($index);
 	}
 	
 	public function offsetUnset($index) {
-		$this->executePending();
+		$this->executePending($index);
 		$this->markToSave();';
 		foreach ($this->maps as $map) {
 			if ($map['type'] == "object") {
@@ -1137,10 +1143,8 @@ class DatabaseBackedCustomClassGenerator {
 	public $includePrefix = "";
 	public $defaultJson = '{}';
 
-	public function __construct($className, $tableName, $tableKeyColumn) {
+	public function __construct($className) {
 		$this->className = $className;
-		$this->tableName = $tableName;
-		$this->tableKeyColumn = $tableKeyColumn;
 	}
 	
 	public function setDefault($default) {
@@ -1158,7 +1162,7 @@ include '.self::phpString($this->includePrefix.$baseClassPath).';
 class '.$this->className.' extends '.$this->className.$classNameSuffix.' {
 
 	static public function setupTables() {
-		//self::querySql("DROP TABLE '.$this->escape($this->tableName).'");
+		//self::querySql("DROP TABLE custom_table");
 		//return self::querySql("CREATE TABLE IF NOT EXISTS custom_table");
 	}
 	
@@ -1261,18 +1265,18 @@ abstract class '.$this->className.$classNameSuffix.' extends '.$commonClass.' im
 	}
 	
 	public function __get($key) {
-		$this->executePending();
+		$this->executePending($key);
 		return $this->innerData[$key];
 	}
 	
 	public function __set($key, $value) {
-		$this->executePending();
+		$this->executePending($key);
 		$this->innerData[$key] = $value;
 		$this->markToSave();
 	}
 
 	public function __unset($key) {
-		$this->executePending();
+		$this->executePending($key);
 		if ($this->innerData[$key] instanceof '.$commonClass.' || $this->innerData[$key] instanceof '.$commonArrayClass.') {
 			$this->innerData[$key]->delete();
 		}
@@ -1290,8 +1294,11 @@ abstract class '.$this->className.$classNameSuffix.' extends '.$commonClass.' im
 		return $this->id;
 	}
 
-	protected function executePending($key) {
+	protected function executePending($key=NULL) {
 		if ($this->hasPending) {
+			if ($key != NULL && !($this->innerData[$key] instanceof '.$pendingClass.')) {
+				return;
+			}
 			$this->hasPending = FALSE;
 			foreach ($this->innerData as $key => $value) {
 				if ($value instanceof '.$pendingClass.') {
